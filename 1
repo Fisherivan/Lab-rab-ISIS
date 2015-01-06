@@ -1,0 +1,75 @@
+#include <stdio.h>
+
+class CImage {
+	int mx;
+	int my;
+	int buf [1000][1000];
+public:
+	CImage (int tx, int ty);
+	void drawHline (int x,int y);
+	void drawVline (int x,int y);
+	void showpnm();
+	int get (int x,int y);
+	void set (int x,int y, int color);
+	void table (int dist, int x,int y,int color);
+	void setSize (int tmx,int tmy);
+};
+
+CImage::CImage (int tx,int ty){
+	mx = tx;
+	my = ty;
+	for (int i=0; i<mx; i++){
+		for (int j=0; j<my; j++){
+			buf[i][j]=0;
+		}
+	}
+}
+
+int CImage::get (int x,int y){
+	return buf[x][y];
+}
+
+void CImage::set (int x,int y,int color){
+	buf[x][y]=color;
+}
+
+void CImage::drawVline (int x,int color){
+	for (int i=0; i<mx; i++)
+		set (i,x,color);
+}
+
+void CImage::drawHline (int y,int color){
+	for (int i=0; i<my; i++)
+		set (y,i,color);
+}
+
+void CImage::showpnm (){
+	
+	printf("P1\n%d%d\n",mx,my);
+	
+	for (int i=0; i<my; i++){
+		for (int j=0; j<mx; j++){
+			printf ("%d",buf [i][j]);
+		}
+		printf ("\n");
+	}
+}
+
+void CImage::table (int dist, int ax, int ay, int color){
+	for (int i=0; i<ay; i+=dist)
+	drawHline (i, color);
+	for (int j=0; j<ax; j+=dist)
+	drawVline (j, color);
+}
+
+void CImage::setSize (int tmx, int tmy){
+	mx=tmx;
+	my=tmy;
+}
+
+CImage a(1000,1000);
+int main(){
+	a.table (5,3,3,3);
+	a.setSize (1000,1000);
+	a.showpnm();
+}
