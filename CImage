@@ -1,0 +1,279 @@
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+
+class CImage{
+	int mx;
+	int my;
+	int img[1000][1000];
+	
+	int row;
+	int col;
+	int size;
+public:              
+	CImage(){
+		mx = 10;
+		my = 10;
+		row = 0;
+		col = 0;
+		size = 0;
+	}
+	void showP1(char* fname);
+	void tokenizer(char*, int);
+	void show();
+	void transfer();
+	void findcell();
+	void simpler();
+	void deleteRow(int);
+	void deleteCol(int);
+	void delExtraCol();
+	void delExtraRow();
+};
+
+void CImage::transfer()//функция преобразует полученное изображение в двумерный массив, в котором "1" обозначает присутствие студента
+{
+	simpler();
+	findcell();
+	int mascol = 0;
+	int masrow = 0;
+	int mas[row+1][col+1];
+	for(int s = 0; s < row;s++)
+	{
+		for(int d = 0; d < col; d++)
+		{
+			mas[s][d] = 0;
+		}
+	}
+	for(int i = 1; i < row*(size+1); i += (size+1) )
+	{	
+		mascol = 0;
+		for(int j = 1; j < col*(size+1); j += (size+1) )
+		{
+			int count = 0;
+			
+			for(int m = i; m < (i+size); m++ )
+			{
+				for(int n = j; n < (j+size); n++ )
+				{
+					if(img[m][n] != 0){
+						count++;
+					}
+				}
+			}
+			if(count == 0){
+				mas[masrow][mascol] = 0;
+			}else{
+				mas[masrow][mascol] = 1;
+			}
+			mascol++;
+		}
+		masrow++;
+	}
+	
+	masrow--;
+	mascol--;
+	
+	for(int k = 0; k < masrow; k++){
+		for(int l = 0; l < mascol; l++){
+			printf("%d ", mas[k][l]);
+		}
+		printf("\n");
+	}
+	
+	/*
+	double fnlarr[masrow];
+	for(int i = 0; i < masrow; i++)
+	{
+		double buf = 0;
+		double incr = 1;
+		for(int j = mascol-1; j >= 0; j--)
+		{
+			buf += incr*mas[i][j];
+			incr *= 10;
+		}
+		fnlarr[i] = buf;
+	}
+	
+	printf("TESTING\n");
+	for(int i = 0; i < masrow; i++)
+	{
+		printf("%f\n",fnlarr[i]);
+	}*/
+}
+
+
+void CImage::showP1(char* fname){
+  FILE* fp;   
+  char  buf[1000];
+
+  fp=fopen(fname,"r");
+  if(fp==NULL)
+  {
+    printf("Fail open %s\n",fname);
+    return;
+  }
+    
+  fgets(buf,1000,fp);  // P1
+  printf("%s\n",buf);  
+
+  fgets(buf,1000,fp);  // y x
+  printf("buf = %s\n", buf);
+  sscanf(buf, "%d%d", &mx, &my);
+  printf("%s\n",buf);  
+
+  int i = 0;
+  while (fgets(buf,1000,fp)){
+    tokenizer(buf,i++);
+
+  }
+  fclose(fp);
+}
+
+CImage a;
+void CImage::show(){
+	for(int i = 0; i < my; i++){
+		for(int j = 0; j < mx; j++){
+			printf("%d ", img[i][j]);
+		}
+		printf("\n");
+	}
+}
+void CImage::tokenizer(char* buf,int y){
+	char *p;
+	int i = 0;
+	int str[1000];
+
+	p = strtok(buf, " ");
+
+	while(p!=NULL){
+		//printf("%s\n",p);
+		sscanf(p, "%d", &img[y][i++]);
+		
+		p = strtok(NULL, " ");
+	}
+
+}
+
+void CImage::findcell()//функция определяет количество столбцов, строк и размер ячейки (ячейка должна быть квадратной)
+{
+	for (int i = 0; i < mx; i++)
+	{
+		int countx = 0;
+		for (int j = 0; j < my; j++)
+		{
+			if(img[j][i] == 0) countx++;
+		}
+		if(countx == 0) col++;
+	}
+	
+	for (int i = 0; i < my; i++)
+	{
+		int county = 0;
+		for (int j = 0; j < mx; j++)
+		{
+			if(img[i][j] == 0) county++;
+		}
+		if(county == 0) row++;
+	}
+	
+	
+	size = (mx - col)/(col - 1);
+	
+	
+	//printf("<<<<<<<<function findcell start>>>>>>>>\n");
+	//printf("col = %d\n", col);
+	//printf("row = %d\n", row);
+	//printf("size = %d\n", size);
+	//printf("<<<<<<<<function findcell end>>>>>>>>\n\n");	
+}
+
+void CImage::deleteCol(int ColNum)//удаляет столбец
+{
+	int mxcopy = mx;
+	
+	for(int i = 0; i < my; i++)
+	{
+		for(int j = (ColNum - 1); j < mxcopy; j++)
+		{
+			img[i][j] = img[i][j + 1];
+		}
+	}
+	
+	mx--;
+}
+
+void CImage::deleteRow(int RowNum)//удаляет ряд
+{
+	int mycopy = my;
+	
+	for(int i = 0; i < mx; i++)
+	{
+		for(int j = (RowNum - 1); j < mycopy; j++)
+		{
+			img[j][i] = img[j + 1][i];
+		}
+	}
+	
+	my--;
+}
+
+void CImage::simpler()//функция делает толщину "стенок" равной единице
+{
+	delExtraCol();
+	delExtraRow();
+}
+
+void CImage::delExtraCol()//функция оставляет из нескольких идущих в ряд столбцов, обозначающих границу ячейки один
+{	
+	int mxcopy = mx;
+	int mycopy = my;
+	int prevcol = 0;
+	for (int i = 0; i < mxcopy; i++)
+	{
+		int countx = 0;
+		for (int j = 0; j < mycopy; j++)
+		{
+			if(img[j][i] == 0) countx++;//countx = 0 - граница
+		}
+		if(countx != 0) prevcol = 0;
+		else if(prevcol == 1){
+			deleteCol(i);
+		}else prevcol = 1;
+	}
+}
+
+void CImage::delExtraRow()//функция оставляет из нескольких идущих в ряд рядов, обозначающих границу ячейки один
+{	
+	int mxcopy = mx;
+	int mycopy = my;
+	int prevrow = 0;
+	for (int k = 0; k < mycopy; k++)
+	{
+		int county = 0;
+		for (int l = 0; l < mxcopy; l++)
+		{
+			if(img[k][l] == 0) county++;
+		}
+		if(county != 0) prevrow = 0;
+		else if(prevrow == 1){
+			deleteRow(k);
+		}else prevrow = 1;
+	}
+}
+
+	
+
+int main(){
+  printf("<<<<<a.showP1()>>>>>\n");
+  a.showP1("P1.pnm");
+  printf("<<<<<end>>>>>\n\n");
+
+  printf("<<<<<a.show()>>>>>\n");
+  a.show();
+  printf("<<<<<end>>>>>\n\n");
+  
+  printf("<<<<<a.transfer()>>>>>\n");
+  a.transfer();
+  printf("<<<<<end>>>>>\n\n");
+  return 0;
+}
