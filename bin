@@ -1,0 +1,74 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+int** binarization(int p, int **mas, int numstr, int numcol) {
+	int** output = new int*[numstr];
+	for(int i=0; i<numstr;i++) {
+		output[i] = new int[numcol];
+	}
+	for(int i=0; i<numstr; i++) {
+		for(int j=0; j<numcol; j++) {
+			if (mas[i][j]>p)
+			  output[i][j]=1;
+		    else output[i][j]=0;
+		}
+	}
+	return output;
+}
+int** printStr2(char* a, int* numcol, int* numstr)
+	{
+			int** mas;
+				sscanf(a, "%d %d", numcol, numstr);
+			printf("%d %d\n", *numstr, *numcol);
+			mas = new int*[*numstr];
+			for(int i=0; i<*numstr;i++) {
+				mas[i] = new int[*numcol];
+			}
+			return mas;
+	}
+void printMatrix(int** mas, int numstr, int numcol) {
+	for(int i=0; i<numstr; i++) {
+		for(int j=0; j<numcol; j++) {
+			printf("%d ", mas[i][j]);
+		} 
+		printf("\n");
+	}
+}
+void main(int argc, char* argv[]) {
+	char a[1000];
+	int m=1, numstr, numcol;
+	int **mas;
+    FILE* f=fopen(argv[2],"r");
+	while (fgets(a, 100, f)!=0) {
+		if (m==1) 
+		printf("%s\n", a);
+		if (m==2) 
+			mas=printStr2(a, &numcol, &numstr); 
+	    if (m>3) {
+			int buf=0;
+			for(int i=0;i<numcol;i++) {
+				sscanf(a+buf, "%d", &mas[m-4][i]);
+				char b[100];
+				sprintf(b, "%d", mas[m-4][i]);
+				buf+=strlen(b);
+				buf++;
+			}
+		}
+	    m++;	
+    }
+    int p=atoi(argv[1]);
+    printMatrix(mas, numstr, numcol);
+	int **output=binarization(p, mas, numstr, numcol);
+	FILE* fw=fopen(argv[3],"w");
+    fprintf(fw, "P1\n");
+	fprintf(fw, "%d %d\n", numcol, numstr);
+    for(int i=0; i<numstr; i++) {
+		for(int j=0; j<numcol; j++) {
+			fprintf(fw, "%d ", output[i][j]);
+		}
+		fprintf(fw, "\n");
+	}
+	fclose(fw);
+	fclose(f);
+    getchar();
+}
